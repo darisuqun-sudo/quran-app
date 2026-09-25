@@ -4,7 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/constants/app_constants.dart';
 import 'core/theme/app_theme.dart';
 import 'presentation/providers/app_providers.dart';
-import 'presentation/screens/admin/admin_dashboard_screen.dart';
+import 'presentation/providers/auth_provider.dart';
+import 'presentation/screens/auth/auth_modal.dart';
 import 'presentation/screens/bookmarks/bookmarks_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/prayer_times/prayer_times_screen.dart';
@@ -114,18 +115,25 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
                   icon: const Icon(Icons.search_rounded),
                 ),
                 IconButton(
-                  tooltip: 'ئارقا باشقۇرۇش سۇپىسى (Admin Panel)',
+                  tooltip: ref.watch(authProvider).isLoggedIn
+                      ? (ref.watch(authProvider).isAdmin
+                          ? 'باشقۇرغۇچى مەركىزى'
+                          : 'ئەزا مەركىزى (${ref.watch(authProvider).currentUser!.name})')
+                      : 'ئەزا كىرىش / تىزىملىتىش',
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const AdminDashboardScreen(),
-                      ),
-                    );
+                    AuthModal.show(context);
                   },
-                  icon: const Icon(
-                    Icons.admin_panel_settings_rounded,
-                    color: AppTheme.accentGold,
+                  icon: Icon(
+                    ref.watch(authProvider).isLoggedIn
+                        ? (ref.watch(authProvider).isAdmin
+                            ? Icons.admin_panel_settings_rounded
+                            : Icons.account_circle_rounded)
+                        : Icons.account_circle_outlined,
+                    color: ref.watch(authProvider).isAdmin
+                        ? AppTheme.accentGold
+                        : (ref.watch(authProvider).isLoggedIn
+                            ? AppTheme.primaryEmerald
+                            : null),
                   ),
                 ),
                 IconButton(

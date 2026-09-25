@@ -10,6 +10,7 @@ import '../../../core/utils/qibla_utils.dart';
 import '../../../data/models/reciter_model.dart';
 import '../../../data/models/surah_model.dart';
 import '../../providers/app_providers.dart';
+import '../../providers/auth_provider.dart';
 
 class AdminDashboardScreen extends ConsumerStatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -37,6 +38,10 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
   // Surah filter
   String _surahSearchQuery = '';
 
+  // Admin Lock Screen
+  final _lockPassController = TextEditingController();
+  bool _obscureLockPass = true;
+
   @override
   void initState() {
     super.initState();
@@ -49,6 +54,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
   void dispose() {
     _tabController.dispose();
     _testAudioPlayer?.dispose();
+    _lockPassController.dispose();
     super.dispose();
   }
 
@@ -259,6 +265,13 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+
+    // If not authenticated as Admin, show the lock screen
+    if (!authState.isAdmin) {
+      return _buildLockScreen(context, authState);
+    }
+
     final settings = ref.watch(appSettingsProvider);
 
     return Directionality(
@@ -288,6 +301,16 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.refresh_rounded),
+            ),
+            IconButton(
+              tooltip: 'باشقۇرغۇچى ھالىتىدىن چىقىش (Logout)',
+              icon: const Icon(Icons.logout_rounded, color: Colors.redAccent),
+              onPressed: () async {
+                await ref.read(authProvider.notifier).logout();
+                if (context.mounted) {
+                  Navigator.pop(context);
+                }
+              },
             ),
           ],
           bottom: TabBar(
@@ -1035,6 +1058,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
 
   /// Tab 5: App Configuration, Backup & Developer Tools
   Widget _buildSettingsTab(AppSettingsState settings) {
+    final authState = ref.watch(authProvider);
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -1116,6 +1140,170 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
         ),
         const SizedBox(height: 16),
 
+        // Registered Members Management
+        Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(
+              color: AppTheme.accentGold.withValues(alpha: 0.35),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.people_alt_rounded,
+                            color: AppTheme.accentGold),
+                        SizedBox(width: 8),
+                        Text(
+                          'تىزىملاتقان ئەزالار سىستېمىسى',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppTheme.accentGold.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${authState.registeredUsers.length} ئەزا',
+                        style: const TextStyle(
+                          color: AppTheme.accentGold,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'ئەپكە ئېلېكترونلۇق خەت (ئىمائىل) ئارقىلىق تىزىملاتقان بارلىق ئىشلەتكۈچىلەر تىزىملىكى:',
+                  style: TextStyle(fontSize: 13, color: Colors.white70),
+                ),
+                const SizedBox(height: 12),
+                if (authState.registeredUsers.isEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardTheme.color,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      'ھازىرچە توردا تىزىملاتقان ئەزا يوق (ئالدى بەتتىكى ئەزا كىرىش كۆزنىكى ئارقىلىق تىزىملىتىلىدۇ).',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 12.5, color: Colors.grey),
+                    ),
+                  )
+                else
+                  ...authState.registeredUsers.map((u) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardTheme.color,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppTheme.accentGold.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const CircleAvatar(
+                            radius: 16,
+                            backgroundColor: AppTheme.primaryEmerald,
+                            child: Icon(Icons.person_rounded,
+                                size: 18, color: AppTheme.accentGold),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  u.name,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold, fontSize: 14),
+                                ),
+                                Text(
+                                  u.email,
+                                  style: const TextStyle(
+                                      fontSize: 12, color: Colors.grey),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Text(
+                            '${u.createdAt.year}-${u.createdAt.month.toString().padLeft(2, '0')}-${u.createdAt.day.toString().padLeft(2, '0')}',
+                            style: const TextStyle(
+                                fontSize: 11, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Admin Security & Password Change
+        Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(
+              color: AppTheme.accentGold.withValues(alpha: 0.35),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.security_rounded, color: AppTheme.accentGold),
+                    SizedBox(width: 8),
+                    Text(
+                      'باشقۇرغۇچى بىخەتەرلىكى ۋە شىفىر ئۆزگەرتىش',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'ئارقا سۇپىغا كىرىش ئۈچۈن ئىشلىتىلىدىغان مەخپىي ئادمىن شىفىرىنى ئۆزگەرتىش:',
+                  style: TextStyle(fontSize: 13, color: Colors.white70),
+                ),
+                const SizedBox(height: 12),
+                FilledButton.tonalIcon(
+                  onPressed: () => _showChangePasswordDialog(context),
+                  icon: const Icon(Icons.password_rounded),
+                  label: const Text('باشقۇرغۇچى شىفىرىنى يېڭىلاش'),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+
         // Factory Reset & Maintenance
         Card(
           shape: RoundedRectangleBorder(
@@ -1169,6 +1357,206 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
           ),
         ),
       ],
+    );
+  }
+
+  void _showChangePasswordDialog(BuildContext context) {
+    final oldPassCtrl = TextEditingController();
+    final newPassCtrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: const Text('باشقۇرغۇچى شىفىرىنى يېڭىلاش'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: oldPassCtrl,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'ھازىرقى كونا شىفىر',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: newPassCtrl,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'يېڭى شىفىر (ئەڭ ئاز 4 ھەرپ)',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('بىكار قىلىش'),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppTheme.accentGold,
+                  foregroundColor: AppTheme.deepEmerald,
+                ),
+                onPressed: () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  final ok = await ref
+                      .read(authProvider.notifier)
+                      .changeAdminPassword(
+                        oldPassword: oldPassCtrl.text,
+                        newPassword: newPassCtrl.text,
+                      );
+                  if (ok && ctx.mounted) {
+                    Navigator.pop(ctx);
+                    messenger.showSnackBar(
+                      const SnackBar(
+                        content: Text('باشقۇرغۇچى شىفىرى مۇۋەپپەقىيەتلىك يېڭىلاندى!'),
+                      ),
+                    );
+                  }
+                },
+                child: const Text('ساقلاش'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLockScreen(BuildContext context, AuthState authState) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('باشقۇرغۇچى سالاھىيەت تەستىقى'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+        body: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  side: const BorderSide(color: AppTheme.accentGold, width: 1.5),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const CircleAvatar(
+                        radius: 36,
+                        backgroundColor: Color(0xFF0A261B),
+                        child: Icon(
+                          Icons.lock_rounded,
+                          color: AppTheme.accentGold,
+                          size: 40,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'ئارقا سۇپا قۇلۇپلانغان',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'بۇ سۇپا پەقەت سىستېما باشقۇرغۇچىسى ئۈچۈن مەخسۇس لايىھەلەنگەن. داۋاملاشتۇرۇش ئۈچۈن باشقۇرغۇچى مەخپىي شىفىرىنى كىرگۈزۈڭ.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 13, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 20),
+                      if (authState.errorMessage != null)
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.redAccent.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: Colors.redAccent.withValues(alpha: 0.5),
+                            ),
+                          ),
+                          child: Text(
+                            authState.errorMessage!,
+                            style: const TextStyle(
+                              color: Colors.redAccent,
+                              fontSize: 13,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      TextField(
+                        controller: _lockPassController,
+                        obscureText: _obscureLockPass,
+                        decoration: InputDecoration(
+                          labelText: 'باشقۇرغۇچى كودى (Admin Key)',
+                          hintText: 'ئەسلى شىفىر: admin7788',
+                          prefixIcon: const Icon(Icons.vpn_key_rounded,
+                              color: AppTheme.accentGold),
+                          suffixIcon: IconButton(
+                            icon: Icon(_obscureLockPass
+                                ? Icons.visibility_off_rounded
+                                : Icons.visibility_rounded),
+                            onPressed: () => setState(
+                                () => _obscureLockPass = !_obscureLockPass),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppTheme.accentGold,
+                          foregroundColor: AppTheme.deepEmerald,
+                          minimumSize: const Size.fromHeight(48),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: authState.isLoading
+                            ? null
+                            : () async {
+                                await ref
+                                    .read(authProvider.notifier)
+                                    .loginAsAdmin(_lockPassController.text);
+                              },
+                        icon: const Icon(Icons.lock_open_rounded),
+                        label: const Text(
+                          'قۇلۇپنى ئېچىش ۋە كىرىش',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('ئارقىغا قايتىش'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

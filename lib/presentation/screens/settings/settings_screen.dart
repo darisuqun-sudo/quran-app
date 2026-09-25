@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/reciter_model.dart';
 import '../../providers/app_providers.dart';
+import '../../providers/auth_provider.dart';
 import '../admin/admin_dashboard_screen.dart';
+import '../auth/auth_modal.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -19,6 +21,64 @@ class SettingsScreen extends ConsumerWidget {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // User / Admin Account Profile Card
+          Builder(
+            builder: (context) {
+              final authState = ref.watch(authProvider);
+              return Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(
+                    color: authState.isAdmin
+                        ? AppTheme.accentGold
+                        : (authState.isLoggedIn
+                            ? AppTheme.primaryEmerald
+                            : AppTheme.accentGold.withValues(alpha: 0.3)),
+                    width: 1.2,
+                  ),
+                ),
+                child: ListTile(
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  leading: CircleAvatar(
+                    backgroundColor: authState.isAdmin
+                        ? AppTheme.accentGold
+                        : (authState.isLoggedIn
+                            ? AppTheme.primaryEmerald
+                            : Colors.grey.withValues(alpha: 0.2)),
+                    child: Icon(
+                      authState.isAdmin
+                          ? Icons.admin_panel_settings_rounded
+                          : (authState.isLoggedIn
+                              ? Icons.person_rounded
+                              : Icons.person_outline_rounded),
+                      color: authState.isAdmin ? AppTheme.deepEmerald : Colors.white,
+                    ),
+                  ),
+                  title: Text(
+                    authState.isLoggedIn
+                        ? authState.currentUser!.name
+                        : 'ئەزا بولۇش / كىرىش (ھېسابات)',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  subtitle: Text(
+                    authState.isLoggedIn
+                        ? '${authState.currentUser!.email} • ${authState.isAdmin ? 'باشقۇرغۇچى' : 'ئەزا'}'
+                        : 'خەتكۈچ ۋە نىشانلارنى ساقلاش ئۈچۈن تىزىملىتىڭ',
+                    style: const TextStyle(fontSize: 12.5),
+                  ),
+                  trailing: FilledButton.tonal(
+                    onPressed: () => AuthModal.show(context),
+                    child: Text(
+                      authState.isLoggedIn ? 'باشقۇرۇش' : 'كىرىش',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 14),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -193,45 +253,66 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 14),
-          Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: const BorderSide(color: AppTheme.accentGold, width: 1.3),
-            ),
-            child: ListTile(
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppTheme.accentGold.withValues(alpha: 0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.admin_panel_settings_rounded,
-                  color: AppTheme.accentGold,
-                  size: 24,
-                ),
-              ),
-              title: const Text(
-                'ئارقا باشقۇرۇش سۇپىسى (Admin Console)',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-              ),
-              subtitle: const Text(
-                'سۈرە، قارىئىلار، گېئو-ئورۇن، سىستېما تەشخىسى ۋە زاپاسلاش',
-                style: TextStyle(fontSize: 12),
-              ),
-              trailing:
-                  const Icon(Icons.arrow_forward_ios_rounded, size: 14),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const AdminDashboardScreen(),
+          Builder(
+            builder: (context) {
+              final authState = ref.watch(authProvider);
+              if (authState.isAdmin) {
+                return Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: const BorderSide(color: AppTheme.accentGold, width: 1.5),
+                  ),
+                  child: ListTile(
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppTheme.accentGold.withValues(alpha: 0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.admin_panel_settings_rounded,
+                        color: AppTheme.accentGold,
+                        size: 24,
+                      ),
+                    ),
+                    title: const Text(
+                      'ئارقا باشقۇرۇش مەركىزى (Admin Dashboard)',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                    subtitle: const Text(
+                      'سۈرە، قارىئىلار، شەھەرلەر ۋە ئەپ تەكشۈرۈش مەركىزى',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                    trailing:
+                        const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AdminDashboardScreen(),
+                        ),
+                      );
+                    },
                   ),
                 );
-              },
-            ),
+              } else {
+                return Center(
+                  child: TextButton.icon(
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.grey.withValues(alpha: 0.7),
+                    ),
+                    icon: const Icon(Icons.lock_outline_rounded, size: 16),
+                    label: const Text(
+                      'باشقۇرغۇچى كىرىش ئېغىزى (Admin Portal)',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                    onPressed: () => AuthModal.show(context),
+                  ),
+                );
+              }
+            },
           ),
           const SizedBox(height: 16),
         ],
