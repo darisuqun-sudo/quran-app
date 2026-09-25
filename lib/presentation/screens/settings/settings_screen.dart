@@ -6,6 +6,7 @@ import '../../../data/models/reciter_model.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/auth_provider.dart';
 import '../admin/admin_dashboard_screen.dart';
+import '../admin/admin_login_screen.dart';
 import '../auth/auth_modal.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -308,7 +309,14 @@ class SettingsScreen extends ConsumerWidget {
                       'باشقۇرغۇچى كىرىش ئېغىزى (Admin Portal)',
                       style: TextStyle(fontSize: 12),
                     ),
-                    onPressed: () => AuthModal.show(context),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AdminLoginScreen(),
+                        ),
+                      );
+                    },
                   ),
                 );
               }

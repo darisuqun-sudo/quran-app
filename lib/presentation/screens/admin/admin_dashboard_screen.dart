@@ -11,6 +11,7 @@ import '../../../data/models/reciter_model.dart';
 import '../../../data/models/surah_model.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/auth_provider.dart';
+import 'admin_login_screen.dart';
 
 class AdminDashboardScreen extends ConsumerStatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -38,10 +39,6 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
   // Surah filter
   String _surahSearchQuery = '';
 
-  // Admin Lock Screen
-  final _lockPassController = TextEditingController();
-  bool _obscureLockPass = true;
-
   @override
   void initState() {
     super.initState();
@@ -54,7 +51,6 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
   void dispose() {
     _tabController.dispose();
     _testAudioPlayer?.dispose();
-    _lockPassController.dispose();
     super.dispose();
   }
 
@@ -1432,131 +1428,6 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
   }
 
   Widget _buildLockScreen(BuildContext context, AuthState authState) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('باشقۇرغۇچى سالاھىيەت تەستىقى'),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
-        body: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  side: const BorderSide(color: AppTheme.accentGold, width: 1.5),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const CircleAvatar(
-                        radius: 36,
-                        backgroundColor: Color(0xFF0A261B),
-                        child: Icon(
-                          Icons.lock_rounded,
-                          color: AppTheme.accentGold,
-                          size: 40,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'ئارقا سۇپا قۇلۇپلانغان',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'بۇ سۇپا پەقەت سىستېما باشقۇرغۇچىسى ئۈچۈن مەخسۇس لايىھەلەنگەن. داۋاملاشتۇرۇش ئۈچۈن باشقۇرغۇچى مەخپىي شىفىرىنى كىرگۈزۈڭ.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 13, color: Colors.grey),
-                      ),
-                      const SizedBox(height: 20),
-                      if (authState.errorMessage != null)
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          margin: const EdgeInsets.only(bottom: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.redAccent.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: Colors.redAccent.withValues(alpha: 0.5),
-                            ),
-                          ),
-                          child: Text(
-                            authState.errorMessage!,
-                            style: const TextStyle(
-                              color: Colors.redAccent,
-                              fontSize: 13,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      TextField(
-                        controller: _lockPassController,
-                        obscureText: _obscureLockPass,
-                        decoration: InputDecoration(
-                          labelText: 'باشقۇرغۇچى كودى (Admin Key)',
-                          hintText: 'ئەسلى شىفىر: admin7788',
-                          prefixIcon: const Icon(Icons.vpn_key_rounded,
-                              color: AppTheme.accentGold),
-                          suffixIcon: IconButton(
-                            icon: Icon(_obscureLockPass
-                                ? Icons.visibility_off_rounded
-                                : Icons.visibility_rounded),
-                            onPressed: () => setState(
-                                () => _obscureLockPass = !_obscureLockPass),
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      FilledButton.icon(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppTheme.accentGold,
-                          foregroundColor: AppTheme.deepEmerald,
-                          minimumSize: const Size.fromHeight(48),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        onPressed: authState.isLoading
-                            ? null
-                            : () async {
-                                await ref
-                                    .read(authProvider.notifier)
-                                    .loginAsAdmin(_lockPassController.text);
-                              },
-                        icon: const Icon(Icons.lock_open_rounded),
-                        label: const Text(
-                          'قۇلۇپنى ئېچىش ۋە كىرىش',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('ئارقىغا قايتىش'),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+    return const AdminLoginScreen();
   }
 }

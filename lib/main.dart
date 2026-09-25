@@ -5,6 +5,7 @@ import 'core/constants/app_constants.dart';
 import 'core/theme/app_theme.dart';
 import 'presentation/providers/app_providers.dart';
 import 'presentation/providers/auth_provider.dart';
+import 'presentation/screens/admin/admin_login_screen.dart';
 import 'presentation/screens/auth/auth_modal.dart';
 import 'presentation/screens/bookmarks/bookmarks_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
@@ -33,7 +34,22 @@ class MyApp extends ConsumerWidget {
       theme: AppTheme.lightTheme(),
       darkTheme: AppTheme.darkTheme(),
       themeMode: settings.themeMode,
-      home: const MainNavigationShell(),
+      routes: {
+        '/': (_) => const MainNavigationShell(),
+        '/admin': (_) => const AdminLoginScreen(),
+        '/wp-admin': (_) => const AdminLoginScreen(),
+        '/login': (_) => const AdminLoginScreen(),
+      },
+      onGenerateRoute: (routeSettings) {
+        if (routeSettings.name == '/admin' ||
+            routeSettings.name == '/wp-admin' ||
+            routeSettings.name == '/login') {
+          return MaterialPageRoute(
+            builder: (_) => const AdminLoginScreen(),
+          );
+        }
+        return null;
+      },
     );
   }
 }

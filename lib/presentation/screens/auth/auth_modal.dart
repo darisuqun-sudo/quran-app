@@ -5,6 +5,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/auth_provider.dart';
 import '../admin/admin_dashboard_screen.dart';
+import '../admin/admin_login_screen.dart';
 
 class AuthModal extends ConsumerStatefulWidget {
   const AuthModal({super.key});
@@ -360,7 +361,7 @@ class _AuthModalState extends ConsumerState<AuthModal>
 
         const Divider(height: 24),
 
-        // Secret Admin Portal Entry
+        // Secret Admin Portal Entry (WordPress style)
         TextButton.icon(
           style: TextButton.styleFrom(
             foregroundColor: AppTheme.accentGold,
@@ -371,9 +372,11 @@ class _AuthModalState extends ConsumerState<AuthModal>
             style: TextStyle(fontSize: 13),
           ),
           onPressed: () {
-            setState(() {
-              _isAdminMode = true;
-            });
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AdminLoginScreen()),
+            );
           },
         ),
       ],
