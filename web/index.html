@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ug" dir="rtl">
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="نۇر قۇرئان — ئۇيغۇرچە قۇرئان كەرىم ئوقۇش، ئاۋازلىق تىلاۋەت، تەرجىمە، ناماز ۋاقتى ۋە قىبلا يۆنىلىشى تور بېكىتى ۋە ئەپ دېتالى">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="نۇر قۇرئان">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <!-- Google Fonts for Arabic & Uyghur rendering -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <title>نۇر قۇرئان | ئۇيغۇرچە قۇرئان كەرىم تور بېكىتى</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #0F291E;
+      font-family: 'Noto Naskh Arabic', system-ui, sans-serif;
+    }
+    #loading-indicator {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: radial-gradient(circle at center, #1B4332 0%, #081C15 100%);
+      color: #FFFFFF;
+      transition: opacity 0.4s ease;
+    }
+    .spinner {
+      width: 54px;
+      height: 54px;
+      border: 4px solid rgba(212, 175, 55, 0.25);
+      border-top-color: #D4AF37;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div id="loading-indicator">
+    <div class="spinner"></div>
+    <h2 style="margin: 0 0 8px 0; color: #D4AF37; font-size: 26px;">نۇر قۇرئان</h2>
+    <p style="margin: 0; opacity: 0.85; font-size: 15px;">قۇرئان كەرىم ۋە ئۇيغۇرچە تەرجىمىسى يۈكلىنىۋاتىدۇ...</p>
+  </div>
+  <script>
+    function hideLoading() {
+      var el = document.getElementById('loading-indicator');
+      if (el) {
+        el.style.opacity = '0';
+        setTimeout(function() {
+          if (el && el.parentNode) el.parentNode.removeChild(el);
+        }, 400);
+      }
+    }
+    window.addEventListener('flutter-first-frame', hideLoading);
+    // Fallback check in case flutter-view is injected before listener
+    var checkInterval = setInterval(function() {
+      if (document.querySelector('flutter-view') || document.querySelector('flt-glass-pane')) {
+        setTimeout(hideLoading, 600);
+        clearInterval(checkInterval);
+      }
+    }, 300);
+  </script>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
